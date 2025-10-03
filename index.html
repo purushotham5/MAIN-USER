@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPro Academy - Professional Learning Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Add Firebase scripts to <head> -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .progress-bar {
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .certificate-bg {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #667eea 100%);
+            border: 12px solid #ffd700;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .nav-glass {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .stats-counter {
+            animation: countUp 2s ease-out;
+        }
+        
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+            }
+        }
+        
+        .language-filter.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+        
+        .language-filter {
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="nav-glass shadow-xl fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">E</span>
+                    </div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">EduPro Academy</h1>
+                </div>
+
+                <div id="nav-buttons" class="flex items-center space-x-4">
+                    <button onclick="showLogin()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-full hover:shadow-lg transition-all duration-300 font-medium">Sign In</button>
+                    <button onclick="showRegister()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-2.5 rounded-full hover:shadow-lg transition-all duration-300 font-medium">Get Started</button>
+                </div>
+
+                <div id="user-nav" class="hidden flex items-center space-x-2">
+                    <div class="flex items-center space-x-1 bg-white rounded-full px-4 py-2 shadow-md">
+                        <div class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-semibold" id="user-avatar"></span>
+                        </div>
+                        <span class="text-gray-700 font-medium" id="user-name-nav"></span>
+                    </div>
+                    <button onclick="showDashboard()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">Dashboard</button>
+                    <button onclick="showProfile()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">My Courses</button>
+                    <button onclick="showCertificates()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">Certificates</button>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-20">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="fade-in">
+            <!-- Hero Section -->
+            <section class="hero-gradient text-white py-20 px-4 sm:px-6">
+                <div class="max-w-7xl mx-auto text-center">
+                    <div class="floating mb-8">
+                        <div class="inline-block p-4 bg-white bg-opacity-20 rounded-full">
+                            <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-bold mb-6 slide-in">
+                        Transform Your
+                        <span class="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Career</span>
+                    </h1>
+                    <p class="text-xl md:text-2xl mb-8 text-white text-opacity-90 max-w-3xl mx-auto slide-in">
+                        Join thousands of professionals mastering cutting-edge skills with our expert-designed courses. Learn at your own pace, earn certificates, and advance your career.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12 slide-in">
+                        <button onclick="showRegister()" class="pulse-glow bg-white text-indigo-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-all duration-300">
+                            Start Learning Today
+                        </button>
+                        <button onclick="showCourseList()" class="border-2 border-white text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white hover:text-indigo-600 transition-all duration-300">
+                            Explore Courses
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="py-16 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 text-center">
+                        <div class="stats-counter">
+                            <div class="text-4xl font-bold text-indigo-600 mb-2">15+</div>
+                            <div class="text-gray-600 font-medium">Expert Courses</div>
+                        </div>
+                        <div class="stats-counter">
+                            <div class="text-4xl font-bold text-purple-600 mb-2">5K+</div>
+                            <div class="text-gray-600 font-medium">Students</div>
+                        </div>
+                        <div class="stats-counter">
+                            <div class="text-4xl font-bold text-green-600 mb-2">98%</div>
+                            <div class="text-gray-600 font-medium">Success Rate</div>
+                        </div>
+                        <div class="stats-counter">
+                            <div class="text-4xl font-bold text-orange-600 mb-2">24/7</div>
+                            <div class="text-gray-600 font-medium">Support</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="py-20 bg-gray-50">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-bold text-gray-800 mb-4">Why Choose EduPro Academy?</h2>
+                        <p class="text-xl text-gray-600 max-w-2xl mx-auto">Experience the future of online learning with our innovative platform</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-4 md:gap-8">
+                        <div class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-4">Industry-Recognized Certificates</h3>
+                            <p class="text-gray-600">Earn certificates that employers value and trust</p>
+                        </div>
+
+                        <div class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-4">Expert Instructors</h3>
+                            <p class="text-gray-600">Learn from industry professionals with real-world experience</p>
+                        </div>
+
+                        <div class="card-hover bg-white p-8 rounded-2xl shadow-lg text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-semibold mb-4">Progress Tracking</h3>
+                            <p class="text-gray-600">Monitor your learning journey with detailed analytics</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Popular Courses Preview -->
+            <section class="py-20 bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-bold text-gray-800 mb-4">Popular Courses</h2>
+                        <p class="text-xl text-gray-600">Start your learning journey with our most popular courses</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-4 md:gap-8" id="popular-courses-preview">
+                        <!-- Popular courses will be loaded here -->
+                    </div>
+
+                    <div class="text-center mt-12">
+                        <button onclick="showCourseList()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:shadow-lg transition-all duration-300">
+                            View All Courses
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="hidden max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="login-email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                    <input type="password" id="login-password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-indigo-500" required>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">Login</button>
+            </form>
+            <p class="text-center mt-4">
+                Don't have an account?
+                <button onclick="showRegister()" class="text-indigo-600 hover:underline">Register here</button>
+            </p>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="hidden max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg fade-in">
+            <h2 class="text-2xl font-bold text-center mb-6">Register</h2>
+            <form onsubmit="handleRegister(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+                    <input type="text" id="register-name" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="register-email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                    <input type="password" id="register-password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-green-500" required>
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Register</button>
+            </form>
+            <p class="text-center mt-4">
+                Already have an account?
+                <button onclick="showLogin()" class="text-green-600 hover:underline">Login here</button>
+            </p>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard-screen" class="hidden fade-in max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Welcome back, <span id="dashboard-user-name"></span>!</h2>
+                <p class="text-gray-600">Continue your learning journey</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-100">Enrolled Courses</p>
+                            <p class="text-3xl font-bold" id="enrolled-count">0</p>
+                        </div>
+                        <div class="text-4xl opacity-80">📚</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100">Completed</p>
+                            <p class="text-3xl font-bold" id="completed-count">0</p>
+                        </div>
+                        <div class="text-4xl opacity-80">🏆</div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6 rounded-2xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-orange-100">Certificates</p>
+                            <p class="text-3xl font-bold" id="certificates-count">0</p>
+                        </div>
+                        <div class="text-4xl opacity-80">🎓</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Continue Learning</h3>
+                        <div id="continue-learning" class="space-y-4">
+                            <!-- Continue learning courses will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-semibold mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button onclick="showCourseList()" class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors">
+                                Browse Courses
+                            </button>
+                            <button onclick="showProfile()" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors">
+                                My Courses
+                            </button>
+                            <button onclick="showCertificates()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                View Certificates
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course List -->
+        <div id="course-list" class="hidden fade-in max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">All Courses</h2>
+                <p class="text-xl text-gray-600">Choose from our comprehensive course catalog</p>
+            </div>
+
+            <!-- Language Filter -->
+            <div class="mb-8 flex justify-center">
+                <div class="bg-white rounded-full p-2 shadow-lg">
+                    <button onclick="filterCourses('all')" class="language-filter active px-6 py-2 rounded-full transition-all">All</button>
+                    <button onclick="filterCourses('programming')" class="language-filter px-6 py-2 rounded-full transition-all">Programming</button>
+                    <button onclick="filterCourses('design')" class="language-filter px-6 py-2 rounded-full transition-all">Design</button>
+                    <button onclick="filterCourses('business')" class="language-filter px-6 py-2 rounded-full transition-all">Business</button>
+                    <button onclick="filterCourses('data')" class="language-filter px-6 py-2 rounded-full transition-all">Data Science</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8" id="courses-container"></div>
+        </div>
+
+        <!-- Certificates Screen -->
+        <div id="certificates-screen" class="hidden fade-in max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">My Certificates</h2>
+                <p class="text-xl text-gray-600">Your achievements and certifications</p>
+            </div>
+            <div id="certificates-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <!-- Certificates will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Course Detail -->
+        <div id="course-detail" class="hidden fade-in">
+            <button onclick="showCourseList()" class="mb-4 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Back to Courses</button>
+            <div id="course-detail-content"></div>
+        </div>
+
+        <!-- Course Learning -->
+        <div id="course-learning" class="hidden fade-in">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="showCourseList()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Back to Courses</button>
+                    <div class="text-right">
+                        <div class="text-sm text-gray-600">Progress</div>
+                        <div class="text-lg font-semibold" id="course-progress">0%</div>
+                    </div>
+                </div>
+                <div id="course-content"></div>
+            </div>
+        </div>
+
+        <!-- Profile/My Courses -->
+        <div id="profile-screen" class="hidden fade-in">
+            <h2 class="text-3xl font-bold text-center mb-8">My Courses</h2>
+            <div id="enrolled-courses" class="flex flex-wrap gap-4 justify-center">
+                <!-- Cards will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Certificate -->
+        <div id="certificate-screen" class="hidden fade-in">
+            <div class="max-w-4xl mx-auto">
+                <button onclick="showProfile()" class="mb-4 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">← Back to My Courses</button>
+                <div id="certificate-content" class="certificate text-white p-12 rounded-lg text-center"></div>
+                <div class="text-center mt-6">
+                    <button onclick="downloadCertificate()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 text-lg">Download Certificate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN DASHBOARD PANEL (INTEGRATED) -->
+        <div id="admin-dashboard-panel" class="hidden fade-in">
+            <div class="min-h-screen flex flex-col">
+                <header class="bg-white shadow-md z-10">
+                    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                        <h1 class="text-3xl font-bold text-gray-900 slide-in">Admin Progress Tracker Dashboard 🚀</h1>
+                        <div class="text-sm text-gray-500">
+                            Real-Time Data: <span id="last-updated" class="font-semibold text-blue-600">Loading...</span>
+                        </div>
+                    </div>
+                </header>
+                <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div id="card-total-students" class="card-animation bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-600">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-medium text-gray-500">Total Student Accounts</div>
+                                <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-4h-5v4zm0 0l-1.336-1.336m1.336 1.336H3m3-4H2m3 4v-4m3 4v-4m3 4v-4m3 4v-4m3 4v-4m-3 4V4m3 16V4m-3 0h5m-5 0H3m3 0h12"/></svg>
+                            </div>
+                            <p class="text-4xl font-extrabold text-gray-900 mt-1"><span id="metric-total-students">0</span></p>
+                        </div>
+                        <div id="card-total-active-users" class="card-animation bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-600">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-medium text-gray-500">Total Active Users</div>
+                                <svg class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            </div>
+                            <p class="text-4xl font-extrabold text-gray-900 mt-1"><span id="metric-total-active-users">0</span></p>
+                        </div>
+                        <div id="card-total-certificates" class="card-animation bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-600">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-medium text-gray-500">Courses Completed (Certified)</div>
+                                <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.01 12.01 0 002.5 14c0 1.491.31 2.923.863 4.264m18.774-11.28A12.01 12.01 0 0021.5 14c0 1.491-.31 2.923-.863 4.264M18 18h-4.264l-.5-1.5-.5 1.5H6m12 0a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                            </div>
+                            <p class="text-4xl font-extrabold text-gray-900 mt-1"><span id="metric-total-certificates">0</span></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg card-animation">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Course Enrollment Distribution (Live Data)</h2>
+                            <div style="height: 300px;">
+                                <canvas id="courseChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg card-animation">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Search & Filter</h2>
+                            <div class="mb-4">
+                                <label for="student-search" class="block text-sm font-medium text-gray-700">Search Student Name</label>
+                                <input type="text" id="student-search" placeholder="E.g., Alice Johnson" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 filter-transition">
+                            </div>
+                            <div class="mb-4">
+                                <label for="course-filter" class="block text-sm font-medium text-gray-700">Filter by Course (Student Enrolled)</label>
+                                <select id="course-filter" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 filter-transition bg-white">
+                                    <option value="all">All Courses</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="status-filter" class="block text-sm font-medium text-gray-700">Filter by Course Status (Student Has)</label>
+                                <select id="status-filter" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 filter-transition bg-white">
+                                    <option value="all">Any Status</option>
+                                    <option value="completed">Has Completed (Certified)</option>
+                                    <option value="in_progress">Only In Progress (No Certs)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-lg card-animation">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Student Course Progress Details (One Row Per Student)</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overall Progress</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined Date</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status (Online/Offline)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="students-table-body" class="bg-white divide-y divide-gray-200">
+                                </tbody>
+                            </table>
+                            <div id="no-results" class="hidden text-center py-8 text-gray-500">No students found matching the criteria.</div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let currentUser = null;
+        let currentCourse = null;
+        let currentDay = 1;
+
+        // Sample Data
+        const courses = [{
+            id: 1,
+            title: "Full Stack Web Development",
+            description: "Master modern web development with React, Node.js, and databases",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "💻",
+            category: "programming",
+            rating: 4.9,
+            students: 2847,
+            curriculum: [
+                "HTML & CSS Fundamentals", "JavaScript ES6+", "React Components", "State Management", "Node.js Backend",
+                "Express.js Framework", "Database Integration", "API Development", "Authentication", "Deployment"
+            ]
+        }, {
+            id: 2,
+            title: "Data Science & Analytics",
+            description: "Master Python, machine learning, and data visualization",
+            duration: "10 days",
+            level: "Intermediate",
+            icon: "📊",
+            category: "data",
+            rating: 4.8,
+            students: 1923,
+            curriculum: [
+                "Python for Data Science", "NumPy & Pandas", "Data Cleaning", "Statistical Analysis", "Data Visualization",
+                "Machine Learning Basics", "Scikit-learn", "Model Evaluation", "Deep Learning Intro", "Capstone Project"
+            ]
+        }, {
+            id: 3,
+            title: "Digital Marketing Mastery",
+            description: "Complete digital marketing strategy and execution",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "📈",
+            category: "business",
+            rating: 4.7,
+            students: 3421,
+            curriculum: [
+                "Marketing Strategy", "SEO Optimization", "Content Marketing", "Social Media Strategy", "Email Campaigns",
+                "Google Analytics", "Paid Advertising", "Conversion Optimization", "Brand Building", "Campaign Analysis"
+            ]
+        }, {
+            id: 4,
+            title: "Mobile App Development",
+            description: "Build cross-platform mobile apps with React Native",
+            duration: "10 days",
+            level: "Intermediate",
+            icon: "📱",
+            category: "programming",
+            rating: 4.6,
+            students: 1567,
+            curriculum: [
+                "React Native Setup", "Components & Navigation", "State Management", "API Integration", "Native Features",
+                "Push Notifications", "App Store Guidelines", "Testing & Debugging", "Performance Optimization", "Publishing"
+            ]
+        }, {
+            id: 5,
+            title: "Cybersecurity Fundamentals",
+            description: "Learn ethical hacking and security best practices",
+            duration: "10 days",
+            level: "Advanced",
+            icon: "🔒",
+            category: "programming",
+            rating: 4.9,
+            students: 892,
+            curriculum: [
+                "Security Principles", "Network Security", "Cryptography", "Vulnerability Assessment", "Penetration Testing",
+                "Incident Response", "Security Tools", "Compliance Standards", "Risk Management", "Capstone Project"
+            ]
+        }, {
+            id: 6,
+            title: "Cloud Computing with AWS",
+            description: "Master Amazon Web Services and cloud architecture",
+            duration: "10 days",
+            level: "Intermediate",
+            icon: "☁️",
+            category: "programming",
+            rating: 4.8,
+            students: 2156,
+            curriculum: [
+                "AWS Fundamentals", "EC2 & VPC", "S3 & Storage", "RDS & Databases", "Lambda Functions",
+                "CloudFormation", "Security & IAM", "Monitoring & Logging", "DevOps Integration", "Certification Prep"
+            ]
+        }, {
+            id: 7,
+            title: "UI/UX Design Professional",
+            description: "Create stunning user experiences and interfaces",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "🎨",
+            category: "design",
+            rating: 4.7,
+            students: 2834,
+            curriculum: [
+                "Design Thinking", "User Research", "Wireframing", "Prototyping", "Visual Design",
+                "Interaction Design", "Usability Testing", "Design Systems", "Figma Mastery", "Portfolio Building"
+            ]
+        }, {
+            id: 8,
+            title: "Artificial Intelligence & ML",
+            description: "Deep dive into AI, neural networks, and machine learning",
+            duration: "10 days",
+            level: "Advanced",
+            icon: "🤖",
+            category: "data",
+            rating: 4.9,
+            students: 1245,
+            curriculum: [
+                "AI Fundamentals", "Machine Learning Algorithms", "Neural Networks", "Deep Learning", "Computer Vision",
+                "Natural Language Processing", "TensorFlow & PyTorch", "Model Deployment", "AI Ethics", "Industry Applications"
+            ]
+        }, {
+            id: 9,
+            title: "Blockchain & Web3 Development",
+            description: "Build decentralized applications and smart contracts",
+            duration: "10 days",
+            level: "Advanced",
+            icon: "⛓️",
+            category: "programming",
+            rating: 4.6,
+            students: 743,
+            curriculum: [
+                "Blockchain Fundamentals", "Ethereum & Solidity", "Smart Contracts", "Web3.js Integration", "DeFi Protocols",
+                "NFT Development", "Security Best Practices", "Testing & Deployment", "Gas Optimization", "DApp Project"
+            ]
+        }, {
+            id: 10,
+            title: "Agile Project Management",
+            description: "Master Scrum, Kanban, and modern project leadership",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "📋",
+            category: "business",
+            rating: 4.5,
+            students: 1876,
+            curriculum: [
+                "Agile Principles", "Scrum Framework", "Kanban Method", "Sprint Planning", "Team Leadership",
+                "Stakeholder Management", "Risk Assessment", "Quality Assurance", "Project Tools", "PMP Preparation"
+            ]
+        }, {
+            id: 11,
+            title: "Python Programming Mastery",
+            description: "Complete Python course from basics to advanced concepts",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "🐍",
+            category: "programming",
+            rating: 4.8,
+            students: 3567,
+            curriculum: [
+                "Python Syntax", "Data Structures", "Object-Oriented Programming", "File Handling", "Error Handling",
+                "Libraries & Modules", "Web Scraping", "API Development", "Testing", "Real-world Projects"
+            ]
+        }, {
+            id: 12,
+            title: "Graphic Design Fundamentals",
+            description: "Learn Adobe Creative Suite and design principles",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "🖌️",
+            category: "design",
+            rating: 4.6,
+            students: 2145,
+            curriculum: [
+                "Design Principles", "Color Theory", "Typography", "Adobe Photoshop", "Adobe Illustrator",
+                "Logo Design", "Brand Identity", "Print Design", "Digital Design", "Portfolio Creation"
+            ]
+        }, {
+            id: 13,
+            title: "Business Analytics",
+            description: "Data-driven decision making for business growth",
+            duration: "10 days",
+            level: "Intermediate",
+            icon: "📊",
+            category: "business",
+            rating: 4.7,
+            students: 1432,
+            curriculum: [
+                "Business Intelligence", "Excel Advanced", "SQL for Business", "Tableau Visualization", "KPI Development",
+                "Forecasting", "A/B Testing", "Customer Analytics", "Financial Modeling", "Strategic Planning"
+            ]
+        }, {
+            id: 14,
+            title: "DevOps Engineering",
+            description: "Master CI/CD, containerization, and infrastructure automation",
+            duration: "10 days",
+            level: "Advanced",
+            icon: "⚙️",
+            category: "programming",
+            rating: 4.8,
+            students: 987,
+            curriculum: [
+                "DevOps Culture", "Git & Version Control", "Docker Containers", "Kubernetes", "CI/CD Pipelines",
+                "Infrastructure as Code", "Monitoring & Logging", "Security Integration", "Cloud Platforms", "Automation"
+            ]
+        }, {
+            id: 15,
+            title: "Content Creation & Video Editing",
+            description: "Create engaging content for social media and marketing",
+            duration: "10 days",
+            level: "Beginner",
+            icon: "🎬",
+            category: "design",
+            rating: 4.5,
+            students: 2876,
+            curriculum: [
+                "Content Strategy", "Video Production", "Adobe Premiere Pro", "After Effects", "Audio Editing",
+                "Social Media Content", "YouTube Optimization", "Live Streaming", "Brand Storytelling", "Content Calendar"
+            ]
+        }];
+
+        // Local Storage Functions
+        function saveToStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+
+        function getFromStorage(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnQ0s1jFoMH6J7vhKVM7NVC-WNScLdA7E",
+            authDomain: "sutherland-6ce2b.firebaseapp.com", // must match your Firebase Auth domain
+            projectId: "sutherland-6ce2b",
+            databaseURL: "https://sutherland-6ce2b-default-rtdb.firebaseio.com",
+        };
+
+        // Initialize Firebase (must be before any firebase.auth() or firebase.database() usage)
+        if (!window.firebaseAppInitialized) {
+            firebase.initializeApp(firebaseConfig);
+            window.firebaseAppInitialized = true;
+        }
+        const auth = firebase.auth();
+        const userRef = firebase.database().ref('edupro_users');
+
+        // Helper to save user data to Firebase
+        function saveUserToFirebase(userObj) {
+            if (!userObj || !userObj.email) return;
+            const userKey = btoa(userObj.email).replace(/[^a-zA-Z0-9]/g, '');
+            userRef.child(userKey).set(userObj);
+        }
+
+        // Initialize App
+        function init() {
+            const savedUser = getFromStorage('currentUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                updateNavigation();
+                showDashboard();
+            } else {
+                showWelcome();
+                loadPopularCourses();
+            }
+        }
+
+        // Navigation Functions
+        function showWelcome() {
+            hideAllScreens();
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            hideAllScreens();
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+
+        function showRegister() {
+            hideAllScreens();
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        function showCourseList() {
+            hideAllScreens();
+            document.getElementById('course-list').classList.remove('hidden');
+            renderCourses();
+        }
+
+        function showDashboard() {
+            hideAllScreens();
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            renderDashboard();
+        }
+
+        function showProfile() {
+            hideAllScreens();
+            document.getElementById('profile-screen').classList.remove('hidden');
+            renderEnrolledCourses();
+        }
+
+        function showCertificates() {
+            hideAllScreens();
+            document.getElementById('certificates-screen').classList.remove('hidden');
+            renderCertificates();
+        }
+
+        function hideAllScreens() {
+            const screens = ['welcome-screen', 'login-form', 'register-form', 'dashboard-screen', 'course-list', 'course-detail', 'course-learning', 'profile-screen', 'certificate-screen', 'certificates-screen'];
+            screens.forEach(screen => {
+                document.getElementById(screen).classList.add('hidden');
+            });
+        }
+
+        function updateNavigation() {
+            if (currentUser) {
+                document.getElementById('nav-buttons').classList.add('hidden');
+                document.getElementById('user-nav').classList.remove('hidden');
+                document.getElementById('user-name-nav').textContent = currentUser.name;
+                document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            } else {
+                document.getElementById('nav-buttons').classList.remove('hidden');
+                document.getElementById('user-nav').classList.add('hidden');
+            }
+        }
+
+        // Authentication Functions using Firebase Auth
+        function handleRegister(event) {
+            event.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const user = userCredential.user;
+                    // Save user profile to Realtime Database
+                    const userObj = {
+                        id: user.uid,
+                        name,
+                        email,
+                        enrolledCourses: [],
+                        completedCourses: [],
+                        certificates: [],
+                        totalCoursesEnrolled: 0,
+                        totalCoursesCompleted: 0
+                    };
+                    userRef.child(user.uid).set(userObj);
+                    currentUser = userObj;
+                    saveToStorage('currentUser', currentUser);
+                    updateNavigation();
+                    showDashboard();
+                })
+                .catch(error => {
+                    if (error.code === 'auth/email-already-in-use') {
+                        alert('Email already exists');
+                    } else {
+                        alert(error.message);
+                    }
+                });
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const user = userCredential.user;
+                    // Get user profile from Realtime Database
+                    userRef.child(user.uid).once('value').then(snapshot => {
+                        if (snapshot.exists()) {
+                            currentUser = snapshot.val();
+                            saveToStorage('currentUser', currentUser);
+                            updateNavigation();
+                            showDashboard();
+                        } else {
+                            // If not found, create minimal profile
+                            currentUser = {
+                                id: user.uid,
+                                name: user.displayName || user.email,
+                                email: user.email,
+                                enrolledCourses: [],
+                                completedCourses: [],
+                                certificates: [],
+                                totalCoursesEnrolled: 0,
+                                totalCoursesCompleted: 0
+                            };
+                            userRef.child(user.uid).set(currentUser);
+                            saveToStorage('currentUser', currentUser);
+                            updateNavigation();
+                            showDashboard();
+                        }
+                    });
+                })
+                .catch(error => {
+                    alert('Invalid email or password');
+                });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                updateNavigation();
+                showWelcome();
+            });
+        }
+
+        // Course Functions
+        function loadPopularCourses() {
+            const popularCourses = courses.slice(0, 3);
+            const container = document.getElementById('popular-courses-preview');
+            container.innerHTML = popularCourses.map(course => `
+                <div class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer" onclick="showCourseDetail(${course.id})">
+                    <div class="text-4xl mb-4">${course.icon}</div>
+                    <h3 class="text-xl font-semibold mb-2">${course.title}</h3>
+                    <p class="text-gray-600 mb-4">${course.description}</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-1">
+                            <span class="text-yellow-500">⭐</span>
+                            <span class="text-sm font-medium">${course.rating}</span>
+                        </div>
+                        <span class="text-sm text-gray-500">${course.students} students</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>📅 ${course.duration}</span>
+                        <span class="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs font-medium">${course.level}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCourses() {
+            const container = document.getElementById('courses-container');
+            container.innerHTML = courses.map(course => `
+                <div class="card-hover bg-white rounded-2xl shadow-lg p-6 cursor-pointer course-item" data-category="${course.category}" onclick="showCourseDetail(${course.id})">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-4xl">${course.icon}</div>
+                        <div class="flex items-center space-x-1">
+                            <span class="text-yellow-500">⭐</span>
+                            <span class="text-sm font-medium">${course.rating}</span>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">${course.title}</h3>
+                    <p class="text-gray-600 mb-4">${course.description}</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm text-gray-500">${course.students} students</span>
+                        <span class="bg-${course.level === 'Beginner' ? 'green' : course.level === 'Intermediate' ? 'yellow' : 'red'}-100 text-${course.level === 'Beginner' ? 'green' : course.level === 'Intermediate' ? 'yellow' : 'red'}-600 px-2 py-1 rounded-full text-xs font-medium">${course.level}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>📅 ${course.duration}</span>
+                        <span class="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs font-medium">${course.category}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterCourses(category) {
+            const courseItems = document.querySelectorAll('.course-item');
+            const filterButtons = document.querySelectorAll('.language-filter');
+
+            // Update active filter button
+            filterButtons.forEach(btn => {
+                btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+                btn.classList.add('text-gray-600');
+            });
+            event.target.classList.add('active', 'bg-indigo-600', 'text-white');
+            event.target.classList.remove('text-gray-600');
+
+            // Filter courses
+            courseItems.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function renderDashboard() {
+            document.getElementById('dashboard-user-name').textContent = currentUser.name;
+            document.getElementById('enrolled-count').textContent = currentUser.enrolledCourses.length;
+            document.getElementById('completed-count').textContent = currentUser.completedCourses.length;
+            document.getElementById('certificates-count').textContent = currentUser.completedCourses.length;
+
+            const continueContainer = document.getElementById('continue-learning');
+            // Only show enrolled courses that are NOT completed and NOT fully done
+            const inProgressCourses = currentUser.enrolledCourses.filter(ec => {
+                // Not completed and not all days completed
+                return !currentUser.completedCourses.includes(ec.courseId) && ec.completedDays.length < 10;
+            });
+
+            if (inProgressCourses.length === 0) {
+                continueContainer.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-4">📚</div>
+                        <p class="text-gray-600 mb-4">No courses in progress</p>
+                        <button onclick="showCourseList()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Browse Courses</button>
+                    </div>
+                `;
+                return;
+            }
+
+            continueContainer.innerHTML = inProgressCourses.map(enrolledCourse => {
+                const course = courses.find(c => c.id === enrolledCourse.courseId);
+                const progress = (enrolledCourse.completedDays.length / 10) * 100;
+
+                return `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="text-2xl">${course.icon}</div>
+                            <div>
+                                <h4 class="font-semibold">${course.title}</h4>
+                                <p class="text-sm text-gray-600">Day ${enrolledCourse.currentDay} of 10</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-24 bg-gray-200 rounded-full h-2">
+                                <div class="bg-indigo-600 h-2 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                            <button onclick="continueCourse(${course.id})" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">Continue</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderCertificates() {
+            const container = document.getElementById('certificates-container');
+
+            // FIX: Get certificates from user object if available, fallback to completedCourses
+            let certificates = [];
+            if (Array.isArray(currentUser.certificates) && currentUser.certificates.length > 0) {
+                certificates = currentUser.certificates;
+            } else if (Array.isArray(currentUser.completedCourses) && currentUser.completedCourses.length > 0) {
+                certificates = currentUser.completedCourses.map(cid => {
+                    const course = courses.find(c => c.id === cid);
+                    return course ? {
+                        courseId: cid,
+                        courseTitle: course.title
+                    } : {
+                        courseId: cid,
+                        courseTitle: "Course"
+                    };
+                });
+            }
+
+            if (certificates.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-4xl mb-4">🎓</div>
+                        <h3 class="text-xl font-semibold mb-2">No Certificates Yet</h3>
+                        <p class="text-gray-600 mb-4">Complete courses to earn certificates</p>
+                        <button onclick="showCourseList()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">Browse Courses</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = certificates.map(cert => {
+                const course = courses.find(c => c.id === cert.courseId);
+                const completionDate = new Date().toLocaleDateString();
+                return `
+                    <div class="bg-white rounded-2xl shadow-lg p-6 text-center">
+                        <div class="text-4xl mb-4">${course ? course.icon : "🎓"}</div>
+                        <h3 class="text-xl font-semibold mb-2">${cert.courseTitle || (course ? course.title : "Course")}</h3>
+                        <p class="text-gray-600 mb-4">Completed on ${completionDate}</p>
+                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-lg mb-4">
+                            <div class="text-2xl mb-2">🏆</div>
+                            <p class="font-semibold">Certificate of Completion</p>
+                        </div>
+                        <button onclick="currentCourse = ${JSON.stringify(course || {})}; showCertificate()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 w-full">
+                            View Certificate
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showCourseDetail(courseId) {
+            const course = courses.find(c => c.id === courseId);
+            currentCourse = course;
+
+            hideAllScreens();
+            document.getElementById('course-detail').classList.remove('hidden');
+
+            const isEnrolled = currentUser.enrolledCourses.some(ec => ec.courseId === courseId);
+            const isCompleted = currentUser.completedCourses.includes(courseId);
+
+            document.getElementById('course-detail-content').innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <div class="text-center mb-8">
+                        <div class="text-6xl mb-4">${course.icon}</div>
+                        <h2 class="text-3xl font-bold mb-4">${course.title}</h2>
+                        <p class="text-xl text-gray-600 mb-6">${course.description}</p>
+                        <div class="flex justify-center space-x-8 mb-6">
+                            <div class="text-center">
+                                <div class="text-2xl">📅</div>
+                                <div class="text-sm text-gray-600">Duration</div>
+                                <div class="font-semibold">${course.duration}</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl">📊</div>
+                                <div class="text-sm text-gray-600">Level</div>
+                                <div class="font-semibold">${course.level}</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl">🎓</div>
+                                <div class="text-sm text-gray-600">Certificate</div>
+                                <div class="font-semibold">Yes</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold mb-4">Course Curriculum</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            ${course.curriculum.map((topic, index) => `
+                                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold mr-3">
+                                        ${index + 1}
+                                    </div>
+                                    <span>${topic}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        ${isCompleted ? 
+                            '<div class="bg-green-100 text-green-800 px-6 py-3 rounded-lg inline-block"><span class="text-2xl">🏆</span> Course Completed!</div>' :
+                            isEnrolled ? 
+                                `<button onclick="continueCourse(${courseId})" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 text-lg">Continue Learning</button>` :
+                                `<button onclick="enrollCourse(${courseId})" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 text-lg">Enroll Free</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }
+
+        function enrollCourse(courseId) {
+            const enrolledCourse = {
+                courseId: courseId,
+                currentDay: 1,
+                completedDays: [],
+                quizScores: {},
+                enrolledDate: new Date().toISOString()
+            };
+            
+            currentUser.enrolledCourses.push(enrolledCourse);
+            updateUserData();
+            
+            alert('Successfully enrolled! Let\'s start learning.');
+            startCourse(courseId);
+        }
+
+        function continueCourse(courseId) {
+            startCourse(courseId);
+        }
+
+        function startCourse(courseId) {
+            const course = courses.find(c => c.id === courseId);
+            const enrolledCourse = currentUser.enrolledCourses.find(ec => ec.courseId === courseId);
+            
+            currentCourse = course;
+            currentDay = enrolledCourse.currentDay;
+            
+            hideAllScreens();
+            document.getElementById('course-learning').classList.remove('hidden');
+            renderCourseLearning();
+        }
+
+        function renderCourseLearning() {
+            const enrolledCourse = currentUser.enrolledCourses.find(ec => ec.courseId === currentCourse.id);
+            const progress = (enrolledCourse.completedDays.length / 10) * 100;
+            
+            document.getElementById('course-progress').textContent = `${Math.round(progress)}%`;
+            
+            const isQuizDay = currentDay % 5 === 0;
+            const isDayCompleted = enrolledCourse.completedDays.includes(currentDay);
+            const canAccessDay = currentDay === 1 || enrolledCourse.completedDays.includes(currentDay - 1);
+            
+            document.getElementById('course-content').innerHTML = `
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold mb-2">${currentCourse.title}</h2>
+                    <div class="bg-gray-200 rounded-full h-2 mb-4">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-5 gap-2 mb-8">
+                    ${Array.from({length: 10}, (_, i) => {
+                        const day = i + 1;
+                        const isCompleted = enrolledCourse.completedDays.includes(day);
+                        const isCurrent = day === currentDay;
+                        const isAccessible = day === 1 || enrolledCourse.completedDays.includes(day - 1);
+                        
+                        return `
+                            <button onclick="selectDay(${day})" 
+                                class="p-3 rounded-lg text-center ${
+                                    isCompleted ? 'bg-green-500 text-white' :
+                                    isCurrent ? 'bg-indigo-600 text-white' :
+                                    isAccessible ? 'bg-gray-200 hover:bg-gray-300' :
+                                    'bg-gray-100 text-gray-400 locked'
+                                }">
+                                <div class="text-sm">Day ${day}</div>
+                                ${isCompleted ? '✅' : isAccessible ? '📖' : '🔒'}
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Day ${currentDay}: ${currentCourse.curriculum[currentDay - 1]}</h3>
+                    
+                    ${!canAccessDay ? `
+                        <div class="text-center py-8">
+                            <div class="text-4xl mb-4">🔒</div>
+                            <p class="text-gray-600">Complete the previous day to unlock this content</p>
+                        </div>
+                    ` : isQuizDay ? `
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">📝</div>
+                            <h4 class="text-lg font-semibold mb-4">Quiz Time!</h4>
+                            <p class="mb-6">Complete this quiz to proceed to the next section</p>
+                            ${isDayCompleted ? 
+                                '<div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg inline-block">Quiz Completed ✅</div>' :
+                                '<button onclick="startQuiz()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">Start Quiz</button>'
+                            }
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            <div class="bg-white p-4 rounded-lg">
+                                <h4 class="font-semibold mb-2">📚 Learning Objectives</h4>
+                                <ul class="list-disc list-inside text-gray-700 space-y-1">
+                                    <li>Understand the fundamentals of ${currentCourse.curriculum[currentDay - 1]}</li>
+                                    <li>Apply practical concepts through examples</li>
+                                    <li>Complete hands-on exercises</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white p-4 rounded-lg">
+                                <h4 class="font-semibold mb-2">📖 Content</h4>
+                                <p class="text-gray-700 mb-4">
+                                    Welcome to Day ${currentDay} of ${currentCourse.title}! Today we'll dive deep into ${currentCourse.curriculum[currentDay - 1]}. 
+                                    This comprehensive lesson covers all the essential concepts you need to master this topic.
+                                </p>
+                                <p class="text-gray-700 mb-4">
+                                    Through practical examples and step-by-step explanations, you'll gain a solid understanding of the key principles. 
+                                    Make sure to take notes and practice the concepts as you go through the material.
+                                </p>
+                                <div class="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                                    <p class="text-blue-800"><strong>Pro Tip:</strong> Take your time to understand each concept thoroughly before moving on to the next section.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                ${isDayCompleted ? 
+                                    '<div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg inline-block">Day Completed ✅</div>' :
+                                    '<button onclick="completeDay()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700">Mark as Complete</button>'
+                                }
+                            </div>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function selectDay(day) {
+            const enrolledCourse = currentUser.enrolledCourses.find(ec => ec.courseId === currentCourse.id);
+            const canAccess = day === 1 || enrolledCourse.completedDays.includes(day - 1);
+            
+            if (canAccess) {
+                currentDay = day;
+                renderCourseLearning();
+            }
+        }
+
+        function completeDay() {
+            const enrolledCourse = currentUser.enrolledCourses.find(ec => ec.courseId === currentCourse.id);
+            
+            if (!enrolledCourse.completedDays.includes(currentDay)) {
+                enrolledCourse.completedDays.push(currentDay);
+                
+                if (currentDay < 10) {
+                    enrolledCourse.currentDay = currentDay + 1;
+                    currentDay = currentDay + 1;
+                }
+                
+                updateUserData();
+                renderCourseLearning();
+                
+                if (enrolledCourse.completedDays.length === 10) {
+                    setTimeout(() => {
+                        alert('🎉 Congratulations! You have completed the entire course!');
+                        completeCourse();
+                    }, 500);
+                }
+            }
+        }
+
+        function startQuiz() {
+            const questions = [
+                {
+                    question: `What is the main focus of ${currentCourse.curriculum[currentDay - 1]}?`,
+                    options: ["Option A", "Option B", "Option C", "Option D"],
+                    correct: 0
+                },
+                {
+                    question: "Which of the following is a best practice?",
+                    options: ["Practice A", "Practice B", "Practice C", "Practice D"],
+                    correct: 1
+                },
+                {
+                    question: "What should you remember when implementing this concept?",
+                    options: ["Remember A", "Remember B", "Remember C", "Remember D"],
+                    correct: 2
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let score = 0;
+            
+            function showQuestion() {
+                const q = questions[currentQuestion];
+                document.getElementById('course-content').innerHTML = `
+                    <div class="bg-white rounded-lg p-6">
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-semibold">Quiz - Question ${currentQuestion + 1} of ${questions.length}</h3>
+                                <div class="text-sm text-gray-600">Score: ${score}/${currentQuestion}</div>
+                            </div>
+                            <div class="bg-gray-200 rounded-full h-2 mb-4">
+                                <div class="bg-purple-600 h-2 rounded-full" style="width: ${((currentQuestion) / questions.length) * 100}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="text-lg mb-4">${q.question}</h4>
+                            <div class="space-y-2">
+                                ${q.options.map((option, index) => `
+                                    <button onclick="selectAnswer(${index})" class="w-full text-left p-3 border rounded-lg hover:bg-gray-50 answer-option">
+                                        ${String.fromCharCode(65 + index)}. ${option}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            window.selectAnswer = function(selectedIndex) {
+                const q = questions[currentQuestion];
+                const options = document.querySelectorAll('.answer-option');
+                
+                options.forEach((option, index) => {
+                    if (index === q.correct) {
+                        option.classList.add('bg-green-100', 'border-green-500');
+                    } else if (index === selectedIndex && index !== q.correct) {
+                        option.classList.add('bg-red-100', 'border-red-500');
+                    }
+                    option.disabled = true;
+                });
+                
+                if (selectedIndex === q.correct) {
+                    score++;
+                }
+                
+                setTimeout(() => {
+                    currentQuestion++;
+                    if (currentQuestion < questions.length) {
+                        showQuestion();
+                    } else {
+                        finishQuiz();
+                    }
+                }, 1500);
+            };
+            
+            function finishQuiz() {
+                const passed = score >= 2;
+                const enrolledCourse = currentUser.enrolledCourses.find(ec => ec.courseId === currentCourse.id);
+                
+                document.getElementById('course-content').innerHTML = `
+                    <div class="bg-white rounded-lg p-6 text-center">
+                        <div class="text-4xl mb-4">${passed ? '🎉' : '😔'}</div>
+                        <h3 class="text-2xl font-semibold mb-4">${passed ? 'Quiz Passed!' : 'Quiz Failed'}</h3>
+                        <p class="text-lg mb-4">Your Score: ${score}/${questions.length}</p>
+                        <p class="text-gray-600 mb-6">
+                            ${passed ? 
+                                'Congratulations! You can now proceed to the next section.' : 
+                                'You need at least 2 correct answers to pass. Please try again.'
+                            }
+                        </p>
+                        <button onclick="${passed ? 'completeDay()' : 'startQuiz()'}" 
+                            class="bg-${passed ? 'green' : 'purple'}-600 text-white px-6 py-3 rounded-lg hover:bg-${passed ? 'green' : 'purple'}-700">
+                            ${passed ? 'Continue' : 'Retry Quiz'}
+                        </button>
+                    </div>
+                `;
+                
+                if (passed) {
+                    enrolledCourse.quizScores[currentDay] = score;
+                }
+            }
+            
+            showQuestion();
+        }
+
+        function completeCourse() {
+            if (!currentUser.completedCourses.includes(currentCourse.id)) {
+                currentUser.completedCourses.push(currentCourse.id);
+                updateUserData();
+
+            }
+            showCertificate();
+        }
+
+        function showCertificate() {
+            hideAllScreens();
+            document.getElementById('certificate-screen').classList.remove('hidden');
+
+            // FIX: Always use course data from courses array if available
+            let courseData = currentCourse;
+            if (!courseData || !courseData.title) {
+                // Try to find course by id
+                if (currentCourse && currentCourse.courseId) {
+                    courseData = courses.find(c => c.id === currentCourse.courseId);
+                }
+                // If still not found, fallback to first completed course
+                if (!courseData && Array.isArray(currentUser.completedCourses) && currentUser.completedCourses.length > 0) {
+                    courseData = courses.find(c => c.id === currentUser.completedCourses[0]);
+                }
+            }
+            // Fallbacks for missing data
+            const courseTitle = courseData && courseData.title ? courseData.title : "Course";
+            const courseDuration = courseData && courseData.duration ? courseData.duration : "";
+            const courseIcon = courseData && courseData.icon ? courseData.icon : "🎓";
+
+            const completionDate = new Date().toLocaleDateString();
+            const certificateId = `EP-${courseData && courseData.id ? courseData.id : "0"}-${currentUser.id}-${Date.now()}`;
+
+            document.getElementById('certificate-content').innerHTML = `
+                <div class="certificate-bg text-white p-12 rounded-2xl text-center">
+                    <div class="mb-8">
+                        <div class="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">${courseIcon}</span>
+                        </div>
+                        <h1 class="text-5xl font-bold mb-4">Certificate of Excellence</h1>
+                        <div class="w-32 h-1 bg-yellow-400 mx-auto"></div>
+                    </div>
+                    <div class="mb-8">
+                        <p class="text-xl mb-4 text-blue-100">This is to certify that</p>
+                        <h2 class="text-4xl font-bold mb-6 text-yellow-300">${currentUser.name}</h2>
+                        <p class="text-xl mb-4 text-blue-100">has successfully completed the professional course</p>
+                        <h3 class="text-3xl font-semibold mb-8 text-white">${courseTitle}</h3>
+                    </div>
+                    <div class="flex justify-center space-x-16 mb-8">
+                        <div class="text-center">
+                            <p class="text-sm text-blue-200 mb-1">Completion Date</p>
+                            <p class="text-lg font-semibold">${completionDate}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-blue-200 mb-1">Course Duration</p>
+                            <p class="text-lg font-semibold">${courseDuration}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-blue-200 mb-1">Grade</p>
+                            <p class="text-lg font-semibold">Excellent</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-blue-300 pt-6">
+                        <div class="flex justify-between items-end">
+                            <div class="text-left">
+                                <div class="w-32 h-0.5 bg-blue-300 mb-2"></div>
+                                <p class="text-sm text-blue-200">Director of Education</p>
+                                <p class="font-semibold">Dr. Sarah Johnson</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
+                                    <span class="text-2xl font-bold">EP</span>
+                                </div>
+                                <p class="text-lg font-bold">EduPro Academy</p>
+                                <p class="text-xs text-blue-200">Professional Learning Platform</p>
+                            </div>
+                            <div class="text-right">
+                                <span style="display:block; font-family:'Pacifico',cursive; font-size:1.1rem; color:#ffd700; margin-bottom:2px;">K.Purushotham</span>
+                                <div class="w-32 h-0.5 bg-blue-300 mb-2 ml-auto"></div>
+                                <p class="text-sm text-blue-200">Certificate Authority</p>
+                                <p class="font-semibold">K PURUSHOTHAM</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <p class="text-xs text-blue-200">Certificate ID: ${certificateId}</p>
+                            <p class="text-xs text-blue-200 mt-1">Verify at: edupro-academy.com/verify</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Add Pacifico font for handwritten signature
+            if (!document.getElementById('pacifico-font')) {
+                const link = document.createElement('link');
+                link.id = 'pacifico-font';
+                link.rel = 'stylesheet';
+                link.href = 'https://fonts.googleapis.com/css?family=Pacifico&display=swap';
+                document.head.appendChild(link);
+            }
+        }
+
+        function downloadCertificate() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            const completionDate = new Date().toLocaleDateString();
+            const certificateId = `EP-${currentCourse.id}-${currentUser.id}-${Date.now()}`;
+            
+            // Set background gradient (approximation with rectangles)
+            doc.setFillColor(30, 60, 114);
+            doc.rect(0, 0, 297, 210, 'F');
+            
+            // Add border
+            doc.setDrawColor(255, 215, 0);
+            doc.setLineWidth(3);
+            doc.rect(10, 10, 277, 190);
+            doc.rect(15, 15, 267, 180);
+            
+            // Title
+            doc.setTextColor(255, 215, 0);
+            doc.setFontSize(32);
+            doc.setFont(undefined, 'bold');
+            doc.text('CERTIFICATE OF EXCELLENCE', 148.5, 50, { align: 'center' });
+            
+            // Subtitle
+            doc.setTextColor(200, 220, 255);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'normal');
+            doc.text('This is to certify that', 148.5, 70, { align: 'center' });
+            
+            // Student name
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text(currentUser.name, 148.5, 90, { align: 'center' });
+            
+            // Course completion text
+            doc.setTextColor(200, 220, 255);
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'normal');
+            doc.text('has successfully completed the professional course', 148.5, 110, { align: 'center' });
+            
+            // Course title
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text(currentCourse.title, 148.5, 130, { align: 'center' });
+            
+            // Details
+            doc.setTextColor(200, 220, 255);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Completion Date: ${completionDate}`, 60, 160);
+            doc.text(`Course Duration: ${currentCourse.duration}`, 148.5, 160, { align: 'center' });
+            doc.text('Grade: Excellent', 237, 160, { align: 'center' });
+            
+            // Signatures
+            doc.setTextColor(200, 220, 255);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Director of Education', 60, 175);
+            doc.text('Dr. Sarah Johnson', 60, 182);
+
+            doc.text('Certificate Authority', 237, 175, { align: 'center' });
+            doc.setFontSize(16);
+            doc.setFont('Pacifico', 'normal');
+            doc.text('K PURUSHOTHAM', 237, 182, { align: 'center' });
+
+            // Footer
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('EduPro Academy', 148.5, 180, { align: 'center' });
+            
+            doc.setTextColor(200, 220, 255);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text('Professional Learning Platform', 148.5, 188, { align: 'center' });
+            doc.text(`Certificate ID: ${certificateId}`, 148.5, 195, { align: 'center' });
+            
+            // Save the PDF
+            doc.save(`${currentCourse.title.replace(/[^a-z0-9]/gi, '_')}_Certificate_${currentUser.name.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+            
+            // Show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            successDiv.innerHTML = '✅ Certificate downloaded successfully!';
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(successDiv);
+            }, 3000);
+        }
+
+        function renderEnrolledCourses() {
+            const container = document.getElementById('enrolled-courses');
+            if (currentUser.enrolledCourses.length === 0) {
+                container.innerHTML = `
+                    <div class="w-full max-w-sm mx-auto text-center py-12">
+                        <div class="text-4xl mb-4">📚</div>
+                        <h3 class="text-xl font-semibold mb-2">No Courses Enrolled</h3>
+                        <p class="text-gray-600 mb-4">Start your learning journey by enrolling in a course</p>
+                        <button onclick="showCourseList()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700">Browse Courses</button>
+                    </div>
+                `;
+                return;
+            }
+            container.innerHTML = currentUser.enrolledCourses.map(enrolledCourse => {
+                const course = courses.find(c => c.id === enrolledCourse.courseId);
+                const progress = (enrolledCourse.completedDays.length / 10) * 100;
+                const isCompleted = currentUser.completedCourses.includes(course.id);
+                return `
+                    <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-xs flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="text-3xl">${course.icon}</div>
+                                <div>
+                                    <h3 class="text-lg font-semibold">${course.title}</h3>
+                                    <p class="text-gray-600 text-sm">${course.description}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xl font-bold ${isCompleted ? 'text-green-600' : 'text-indigo-600'}">${Math.round(progress)}%</div>
+                                <div class="text-xs text-gray-600">${enrolledCourse.completedDays.length}/10 days</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="bg-gray-200 rounded-full h-2 mb-2">
+                                <div class="bg-indigo-600 h-2 rounded-full progress-bar" style="width: ${progress}%"></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="text-xs text-gray-600">
+                                    Enrolled: ${new Date(enrolledCourse.enrolledDate).toLocaleDateString()}
+                                </div>
+                                <div class="space-x-2">
+                                    ${isCompleted ? 
+                                        `<button onclick="currentCourse = ${JSON.stringify(course).replace(/"/g, '&quot;')}; showCertificate()" class="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 text-xs">View Certificate</button>` :
+                                        `<button onclick="continueCourse(${course.id})" class="bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 text-xs">Continue</button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateUserData() {
+            if (!currentUser || !currentUser.id) return;
+            // Prepare user data for Firebase
+            const userObj = {
+                id: currentUser.id,
+                name: currentUser.name,
+                email: currentUser.email,
+                enrolledCourses: currentUser.enrolledCourses.map(ec => ({
+                    courseId: ec.courseId,
+                    courseTitle: (courses.find(c => c.id === ec.courseId) || {}).title || '',
+                    currentDay: ec.currentDay,
+                    completedDays: ec.completedDays,
+                    enrolledDate: ec.enrolledDate
+                })),
+                completedCourses: currentUser.completedCourses.map(cid => {
+                    const course = courses.find(c => c.id === cid);
+                    return course ? { courseId: cid, courseTitle: course.title } : { courseId: cid };
+                }),
+                certificates: currentUser.completedCourses.map(cid => {
+                    const course = courses.find(c => c.id === cid);
+                    return course ? { courseId: cid, courseTitle: course.title } : { courseId: cid };
+                }),
+                totalCoursesEnrolled: currentUser.enrolledCourses.length,
+                totalCoursesCompleted: currentUser.completedCourses.length
+            };
+            userRef.child(currentUser.id).set(userObj);
+            saveToStorage('currentUser', userObj);
+        }
+
+        // ADMIN DASHBOARD LOGIC (INTEGRATED)
+        let studentSummaryData = [];
+        let fullStudentDetails = {};
+        let courseStats = {};
+        let courseChartInstance = null;
+        let usersRef = firebase.database().ref('edupro_users');
+        let activeUsersPresence = {};
+        let statusRef = firebase.database().ref('user_status');
+
+        function calculateOverallProgress(courses) {
+            if (!courses || courses.length === 0) return 0;
+            let totalProgressScore = 0;
+            courses.forEach(course => {
+                let baseProgress = course.progress * 0.8;
+                let certificationBonus = 0;
+                if (course.certified) certificationBonus = 20;
+                totalProgressScore += Math.min(100, baseProgress + certificationBonus);
+            });
+            return Math.round(totalProgressScore / courses.length);
+        }
+
+        function getJoinedDateFromUser(userData) {
+            // Use joinedDate from Firebase if available, else fallback
+            if (userData.joinedDate) {
+                return new Date(userData.joinedDate).toLocaleDateString();
+            }
+            return '';
+        }
+
+        function getStudentStatus(userId) {
+            return activeUsersPresence.hasOwnProperty(userId) ? 'Online' : 'Offline';
+        }
+
+        function showStudentProfile(studentId) {
+            // ...existing modal code from AdminDashboard.html...
+        }
+
+        function processUserData(usersSnapshot) {
+            let totalStudents = 0;
+            let totalCertificates = 0;
+            let studentSummary = {};
+            let studentDetails = {};
+            let courseStatsTemp = {};
+
+            usersSnapshot.forEach(userSnap => {
+                const userId = userSnap.key;
+                const userData = userSnap.val();
+                if (!userData || !userData.name) return;
+                totalStudents++;
+                let userCourses = [];
+                let totalCertifiedCount = 0;
+                const status = getStudentStatus(userId);
+
+                if (Array.isArray(userData.enrolledCourses)) {
+                    userData.enrolledCourses.forEach(ec => {
+                        const courseId = ec.courseId;
+                        const courseTitle = ec.courseTitle || courseId;
+                        const isCertified = Array.isArray(userData.completedCourses) && userData.completedCourses.some(cc => cc.courseId === courseId);
+                        if (isCertified) totalCertifiedCount++;
+                        const progress = Array.isArray(ec.completedDays) ? Math.min(100, Math.round((ec.completedDays.length / 10) * 100)) : 0;
+                        if (!courseStatsTemp[courseTitle]) courseStatsTemp[courseTitle] = { enrolled: 0, certified: 0 };
+                        courseStatsTemp[courseTitle].enrolled++;
+                        if (isCertified) courseStatsTemp[courseTitle].certified++;
+                        userCourses.push({
+                            courseId: courseId,
+                            courseTitle: courseTitle,
+                            progress: progress,
+                            status: isCertified ? 'Completed' : 'In Progress',
+                            certified: isCertified
+                        });
+                    });
+                }
+                totalCertificates += totalCertifiedCount;
+                const overallProgress = calculateOverallProgress(userCourses);
+
+                studentSummary[userId] = {
+                    studentId: userId,
+                    name: userData.name,
+                    email: userData.email || 'N/A',
+                    overallProgress: overallProgress,
+                    joinedDate: getJoinedDateFromUser(userData),
+                    status: status,
+                    courseCount: userCourses.length,
+                    certifiedCount: totalCertifiedCount
+                };
+                studentDetails[userId] = userCourses;
+            });
+
+            studentSummaryData = Object.values(studentSummary);
+            fullStudentDetails = studentDetails;
+            courseStats = courseStatsTemp;
+
+            document.getElementById('metric-total-students').textContent = totalStudents.toLocaleString();
+            document.getElementById('metric-total-certificates').textContent = totalCertificates.toLocaleString();
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+
+            updateChart(courseStats);
+            populateCourseFilter(courseStats);
+            updateMetricsAndTable();
+        }
+
+        function updateMetricsAndTable() {
+            let totalActiveUsers = 0;
+            studentSummaryData.forEach(student => {
+                const currentStatus = getStudentStatus(student.studentId);
+                student.status = currentStatus;
+                if (currentStatus === 'Online') totalActiveUsers++;
+            });
+            document.getElementById('metric-total-active-users').textContent = totalActiveUsers.toLocaleString();
+            applyFilters();
+        }
+
+        function updateChart(courseStats) {
+            const courseLabels = Object.keys(courseStats).sort();
+            const enrolledData = courseLabels.map(label => courseStats[label].enrolled);
+            const certifiedData = courseLabels.map(label => courseStats[label].certified);
+            const ctx = document.getElementById('courseChart').getContext('2d');
+            if (courseChartInstance) courseChartInstance.destroy();
+            courseChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: courseLabels,
+                    datasets: [
+                        { label: 'Enrolled', data: enrolledData, backgroundColor: 'rgba(59,130,246,0.7)' },
+                        { label: 'Certified', data: certifiedData, backgroundColor: 'rgba(16,185,129,0.7)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 1000, easing: 'easeInOutQuad' },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Number of Students' } },
+                        x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 45 } }
+                    },
+                    plugins: { legend: { display: true } }
+                }
+            });
+        }
+
+        function populateTable(data) {
+            const tableBody = document.getElementById('students-table-body');
+            const noResults = document.getElementById('no-results');
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            }
+            noResults.classList.add('hidden');
+            data.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white filter-transition hover:bg-gray-100' : 'bg-gray-50 filter-transition hover:bg-gray-100';
+                let statusColor = student.status === 'Online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                let progressColor = student.overallProgress > 75 ? 'text-green-600 font-bold' : student.overallProgress > 50 ? 'text-blue-600' : 'text-yellow-600';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <button onclick="showStudentProfile('${student.studentId}')" class="text-blue-600 hover:text-blue-800 font-semibold">${student.name}</button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex items-center">
+                            <div class="w-24 bg-gray-200 rounded-full h-2.5 mr-2">
+                                <div class="h-2.5 rounded-full bg-blue-500" style="width: ${student.overallProgress}%;"></div>
+                            </div>
+                            <span class="${progressColor}">${student.overallProgress}%</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.joinedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                            ${student.status}
+                        </span>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function populateCourseFilter(courseStats) {
+            const filter = document.getElementById('course-filter');
+            while (filter.options.length > 1) filter.remove(1);
+            Object.keys(courseStats).sort().forEach(title => {
+                const option = document.createElement('option');
+                option.value = title;
+                option.textContent = `${title} (${courseStats[title].enrolled} enrolled)`;
+                filter.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const searchName = document.getElementById('student-search').value.toLowerCase();
+            const courseFilter = document.getElementById('course-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            studentSummaryData.forEach(student => {
+                student.status = getStudentStatus(student.studentId);
+            });
+            const filteredSummaryData = studentSummaryData.filter(student => {
+                const nameMatch = student.name.toLowerCase().includes(searchName);
+                const studentCourses = fullStudentDetails[student.studentId] || [];
+                const courseMatch = courseFilter === 'all' || studentCourses.some(c => c.courseTitle === courseFilter);
+                let statusMatch = true;
+                if (statusFilter === 'completed') {
+                    statusMatch = studentCourses.some(c => c.certified === true);
+                } else if (statusFilter === 'in_progress') {
+                    statusMatch = studentCourses.length > 0 && studentCourses.every(c => c.certified === false);
+                }
+                return nameMatch && courseMatch && statusMatch;
+            });
+            populateTable(filteredSummaryData);
+        }
+
+        usersRef.on('value', processUserData, (error) => {
+            console.error("Firebase User Data Error: ", error);
+            document.getElementById('last-updated').textContent = "ERROR";
+        });
+        statusRef.on('value', (snapshot) => {
+            activeUsersPresence = snapshot.val() || {};
+            updateMetricsAndTable();
+        }, (error) => {
+            console.error("Firebase Active Status Data Error: ", error);
+        });
+        document.getElementById('student-search').addEventListener('input', applyFilters);
+        document.getElementById('course-filter').addEventListener('change', applyFilters);
+        document.getElementById('status-filter').addEventListener('change', applyFilters);
+
+        // ADMIN LOGIN HANDLING
+        const ADMIN_EMAIL = "admin@edupro.com";
+        const ADMIN_PASSWORD = "admin123";
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value.trim();
+
+            if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+                hideAllScreens();
+                document.getElementById('admin-dashboard-panel').classList.remove('hidden');
+                return;
+            }
+            // ...existing student login code...
+            // ...existing code for Firebase Auth login...
+        }
+
+        // Initialize the application
+        init();
+    </script>
+    <script>
+        (function() {
+            function c() {
+                var b = a.contentDocument || a.contentWindow.document;
+                if (b) {
+                    var d = b.createElement('script');
+                    d.innerHTML = "window.__CF$cv$params={r:'98770eb9f40b162a',t:'MTc1OTI3MDMwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+                    b.getElementsByTagName('head')[0].appendChild(d)
+                }
+            }
+            if (document.body) {
+                var a = document.createElement('iframe');
+                a.height = 1;
+                a.width = 1;
+                a.style.position = 'absolute';
+                a.style.top = 0;
+                a.style.left = 0;
+                a.style.border = 'none';
+                a.style.visibility = 'hidden';
+                document.body.appendChild(a);
+                if ('loading' !== document.readyState) c();
+                else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c);
+                else {
+                    var e = document.onreadystatechange || function() {};
+                    document.onreadystatechange = function(b) {
+                        e(b);
+                        'loading' !== document.readyState && (document.onreadystatechange = e, c())
+                    }
+                }
+            }
+        })();
+    </script>
+    <!-- TO DISABLE RIGHT CLICK  -->
+    <script>
+        document.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+            // You could optionally show an alert here, like: alert("Content is protected.");
+            return false;
+        });
+    </script>
+    <!-- TO DISABLE SHORTCUTS KEYS -->
+    <script>
+        document.addEventListener('keydown', function(event) {
+            // Block F12 key (Key code 123 is often used for F12)
+            if (event.key === 'F12' || event.keyCode === 123) {
+                event.preventDefault();
+                return false;
+            }
+
+            // Block Ctrl+Shift+I (Inspect Element/DevTools) or Ctrl+U (View Source)
+            if (event.ctrlKey || event.metaKey) { // Ctrl for Windows/Linux, Meta for Mac (Command)
+                if (event.shiftKey && (event.key === 'I' || event.key === 'i')) { // Ctrl+Shift+I
+                    event.preventDefault();
+                    return false;
+                }
+                if (event.key === 'u' || event.key === 'U') { // Ctrl+U
+                    event.preventDefault();
+                    return false;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
+
+</html>
